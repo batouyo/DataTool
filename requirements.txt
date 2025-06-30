@@ -1,0 +1,6 @@
+watchdog
+PyQt5
+numpy
+pandas
+matplotlib
+xlsxwriter
