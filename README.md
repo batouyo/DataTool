@@ -12,7 +12,7 @@
 - 详细的录制日志（时间戳、帧数、帧率等）
 - 实时显示北京时间
 
-![image-20250701044239893](C:\Users\Administrator\AppData\Roaming\Typora\typora-user-images\image-20250701044239893.png)
+![image-20250701044239893](https://gitee.com/ccYep/upload-image/raw/master/20250701054423242.png)
 
 ### 血氧仪数据分析功能
 
