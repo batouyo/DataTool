@@ -28,7 +28,7 @@
 - 导出Excel数据文件
 - 保存波形图像
 
-![image-20250701044303993](C:\Users\Administrator\AppData\Roaming\Typora\typora-user-images\image-20250701044303993.png)
+![image-20250701044303993](https://gitee.com/ccYep/upload-image/raw/master/20250701054929457.png)
 
 ## 安装依赖
 
