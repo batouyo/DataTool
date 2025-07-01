@@ -8,50 +8,11 @@ from datetime import datetime
 import argparse
 import matplotlib
 
-# 检测并配置中文字体
-def setup_chinese_fonts():
-    """检测系统中可用的中文字体并配置matplotlib"""
-    from matplotlib.font_manager import FontManager
-    import platform
-    
-    # 获取所有可用字体
-    font_manager = FontManager()
-    font_names = [font.name for font in font_manager.ttflist]
-    
-    # 常见中文字体列表
-    chinese_fonts = [
-        'SimHei', 'Microsoft YaHei', 'SimSun', 'NSimSun', 'FangSong', 'KaiTi',
-        'Arial Unicode MS', 'DengXian', 'STSong', 'STFangsong', 'STKaiti', 'STXihei',
-        'Heiti SC', 'Heiti TC', 'LiHei Pro', 'Hiragino Sans GB', 'WenQuanYi Zen Hei',
-        'WenQuanYi Micro Hei', 'Source Han Sans CN', 'Source Han Serif CN',
-        'Noto Sans CJK SC', 'Noto Sans CJK TC', 'Noto Sans CJK JP', 'Noto Sans CJK KR'
-    ]
-    
-    # 找到系统中可用的中文字体
-    available_chinese_fonts = []
-    for font in chinese_fonts:
-        if font in font_names:
-            available_chinese_fonts.append(font)
-    
-    # 如果找到可用的中文字体，配置matplotlib
-    if available_chinese_fonts:
-        print(f"找到可用的中文字体: {available_chinese_fonts}")
-        matplotlib.rcParams['font.sans-serif'] = available_chinese_fonts + ['sans-serif']
-        matplotlib.rcParams['axes.unicode_minus'] = False
-        matplotlib.rcParams['font.family'] = 'sans-serif'
-        return True
-    else:
-        print("警告: 未找到可用的中文字体，图形中的中文可能无法正确显示")
-        return False
+# 从 utils 模块导入字体设置函数
+from utils.helpers import setup_chinese_fonts
 
-# 尝试设置中文字体
+# 在程序开始时调用字体设置
 setup_chinese_fonts()
-
-# 如果上面的方法失败，使用备选方案
-matplotlib.rcParams['font.sans-serif'] = ['SimHei', 'Microsoft YaHei', 'SimSun', 'Arial Unicode MS']
-matplotlib.rcParams['axes.unicode_minus'] = False
-matplotlib.rcParams['font.family'] = 'sans-serif'
-
 
 class OximeterDataAnalyzer:
     def __init__(self, input_file):

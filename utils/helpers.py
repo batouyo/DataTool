@@ -1,10 +1,13 @@
+import sys
+import os
 import datetime
 import matplotlib
-from matplotlib.font_manager import FontManager
+from matplotlib.font_manager import fontManager
+from PyQt5.QtWidgets import QMessageBox
 
 # 添加北京时间转换功能
 def get_beijing_time():
-    """获取北京时间"""
+    """获取格式化的北京时间"""
     # 北京时间是UTC+8
     utc_now = datetime.datetime.utcnow()
     beijing_now = utc_now + datetime.timedelta(hours=8)
@@ -15,36 +18,36 @@ def get_timestamp():
     """获取当前时间戳，格式为：年月日_时分秒"""
     return datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 
-# 配置中文字体
+# 新增：用于获取打包后资源的路径
+def resource_path(relative_path):
+    """ 获取资源的绝对路径，兼容开发环境和PyInstaller环境 """
+    if hasattr(sys, '_MEIPASS'):
+        # PyInstaller创建的临时文件夹
+        base_path = sys._MEIPASS
+    else:
+        # 普通的开发环境
+        base_path = os.path.abspath(".")
+    
+    return os.path.join(base_path, relative_path)
+
+# 重写：配置中文字体
 def setup_chinese_fonts():
-    """检测系统中可用的中文字体并配置matplotlib"""
+    """配置matplotlib以使用打包的中文字体"""
+    font_path = resource_path(os.path.join('resources', 'simhei.ttf'))
     
-    # 获取所有可用字体
-    font_manager = FontManager()
-    font_names = [font.name for font in font_manager.ttflist]
-    
-    # 常见中文字体列表
-    chinese_fonts = [
-        'SimHei', 'Microsoft YaHei', 'SimSun', 'NSimSun', 'FangSong', 'KaiTi',
-        'Arial Unicode MS', 'DengXian', 'STSong', 'STFangsong', 'STKaiti', 'STXihei',
-        'Heiti SC', 'Heiti TC', 'LiHei Pro', 'Hiragino Sans GB', 'WenQuanYi Zen Hei',
-        'WenQuanYi Micro Hei', 'Source Han Sans CN', 'Source Han Serif CN',
-        'Noto Sans CJK SC', 'Noto Sans CJK TC', 'Noto Sans CJK JP', 'Noto Sans CJK KR'
-    ]
-    
-    # 找到系统中可用的中文字体
-    available_chinese_fonts = []
-    for font in chinese_fonts:
-        if font in font_names:
-            available_chinese_fonts.append(font)
-    
-    # 如果找到可用的中文字体，配置matplotlib
-    if available_chinese_fonts:
-        print(f"找到可用的中文字体: {available_chinese_fonts}")
-        matplotlib.rcParams['font.sans-serif'] = available_chinese_fonts + ['sans-serif']
+    if not os.path.exists(font_path):
+        print(f"错误: 字体文件未找到 at {font_path}")
+        # 在GUI应用中，使用QMessageBox提示错误可能更友好
+        # 但由于这个helper可能在非GUI线程中使用，暂时只打印
+        return False
+        
+    try:
+        fontManager.addfont(font_path)
+        matplotlib.rcParams['font.sans-serif'] = ['SimHei'] + matplotlib.rcParams['font.sans-serif']
         matplotlib.rcParams['axes.unicode_minus'] = False
         matplotlib.rcParams['font.family'] = 'sans-serif'
+        print("中文字体 'SimHei' 配置成功。")
         return True
-    else:
-        print("警告: 未找到可用的中文字体")
+    except Exception as e:
+        print(f"配置中文字体时发生错误: {e}")
         return False

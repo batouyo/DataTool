@@ -258,6 +258,10 @@ class CameraTab(QWidget):
     @pyqtSlot(int, dict)
     def handle_recording_finished(self, camera_id, recording_info):
         """处理录制完成信号"""
+        # 更新单个摄像头的UI状态，关闭"录制中"指示灯
+        if camera_id in self.camera_views:
+            self.camera_views[camera_id].set_recording(False)
+
         if camera_id not in self.recording_logs:
             self.recording_logs[camera_id] = []
         self.recording_logs[camera_id].append(recording_info)
@@ -363,25 +367,46 @@ class CameraTab(QWidget):
         """将录制信息写入日志文件"""
         if not self.recording_logs:
             return
+        
         subject_dir = os.path.join(self.output_dir_edit.text(), self.current_subject)
+        all_logs_summary = {} # 用于存储所有摄像头的日志摘要，最终写入json
+
         try:
-            for camera_id, logs in self.recording_logs.items():
-                if not logs: continue
-                log_file = os.path.join(subject_dir, f"camera_{camera_id}_log.txt")
-                with open(log_file, "w") as f:
-                    log = logs[0]
-                    f.write(f"摄像头 #{camera_id} 录制日志\n")
-                    f.write(f"对象名称: {self.current_subject}\n")
-                    f.write(f"录制时间: {log['start_time']} 至 {log['end_time']}\n")
-                    f.write(f"总帧数: {log['frame_count']}\n")
-                    f.write(f"设置帧率: {log['fps_setting']}\n")
-                    f.write(f"实际时长(秒): {log['duration_seconds']:.3f}\n")
-                    f.write(f"平均实际帧率: {log['frame_count']/max(log['duration_seconds'], 0.001):.2f}\n")
-                    f.write(f"文件名: {log['filename']}\n")
-            
-            json_log_file = os.path.join(subject_dir, "recording_info.json")
-            with open(json_log_file, "w") as f:
-                json.dump(self.recording_logs, f, indent=4)
+            # 遍历每个摄像头的日志信息
+            for camera_id, log_list in self.recording_logs.items():
+                if not log_list:
+                    continue
+                
+                # 通常每个摄像头只完成一次，我们取最新的日志
+                log_info = log_list[-1] 
+                
+                # 准备文本日志内容
+                log_content = f"录制对象: {self.current_subject}\n"
+                log_content += f"摄像头ID: {camera_id}\n"
+                log_content += f"视频文件: {log_info.get('output_filename', 'N/A')}\n"
+                log_content += f"开始时间: {log_info.get('start_time', 'N/A')}\n"
+                log_content += f"结束时间: {log_info.get('end_time', 'N/A')}\n"
+                log_content += f"总录制时长: {log_info.get('duration_seconds', 0):.2f} 秒\n"
+                log_content += f"总帧数: {log_info.get('frame_count', 0)}\n"
+                log_content += f"平均帧率: {log_info.get('average_fps', 0):.2f} FPS\n"
+                
+                # 创建包含摄像头ID的、独一无二的文件名
+                log_filename = f"camera_{camera_id}_log.txt"
+                log_filepath = os.path.join(subject_dir, log_filename)
+                
+                # 写入独立的文本日志
+                with open(log_filepath, 'w', encoding='utf-8') as f:
+                    f.write(log_content)
+                
+                # 收集摘要信息用于写入总的JSON日志
+                all_logs_summary[f"camera_{camera_id}"] = log_info
+
+            # 写入包含所有摄像头信息的JSON日志文件
+            if all_logs_summary:
+                json_log_file = os.path.join(subject_dir, "recording_info.json")
+                with open(json_log_file, "w", encoding='utf-8') as f:
+                    json.dump(all_logs_summary, f, indent=4, ensure_ascii=False)
+
         except Exception as e:
             QMessageBox.warning(self, "警告", f"写入日志文件时出错: {str(e)}")
 
